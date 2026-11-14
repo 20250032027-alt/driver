@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Each GitHub build gets a higher version number, so phones accept it as an update.
+def buildNumber = (System.getenv('VERSION_CODE') ?: '1') as int
+
+android {
+    namespace 'ph.scanpos.printer'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'ph.scanpos.printer'
+        minSdk 21            // Android 5 and newer
+        targetSdk 34
+        versionCode buildNumber
+        versionName "1.0.${buildNumber}"
+    }
+
+    signingConfigs {
+        release {
+            // Your own key, if set as GitHub secrets (see printer-app/README.md); otherwise the key in app/signing/.
+            storeFile file(System.getenv('KEYSTORE_FILE') ?: 'signing/scanpos-printer.jks')
+            storePassword System.getenv('KEYSTORE_PASSWORD') ?: 'scanpos-printer'
+            keyAlias System.getenv('KEY_ALIAS') ?: 'scanpos'
+            keyPassword System.getenv('KEY_PASSWORD') ?: (System.getenv('KEYSTORE_PASSWORD') ?: 'scanpos-printer')
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        // Bluetooth calls are checked by hand (Perm.java); don't fail the build on lint's guesses.
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
